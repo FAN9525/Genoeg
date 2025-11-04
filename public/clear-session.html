@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Session - Genoeg Gewerk</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 600px;
+      margin: 100px auto;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 { color: #3B82F6; }
+    .button {
+      background: #3B82F6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    .button:hover { background: #2563EB; }
+    .success {
+      background: #10B981;
+      color: white;
+      padding: 12px;
+      border-radius: 6px;
+      margin: 20px 0;
+      display: none;
+    }
+    .info {
+      background: #f3f4f6;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧹 Clear Session</h1>
+  <p>Having issues with 403 Forbidden errors? Clear your session here.</p>
+  
+  <div class="info">
+    <strong>This will:</strong>
+    <ul>
+      <li>Clear all localStorage data</li>
+      <li>Clear all sessionStorage data</li>
+      <li>Clear Supabase auth cookies</li>
+      <li>Reset your session completely</li>
+    </ul>
+  </div>
+
+  <button class="button" onclick="clearSession()">Clear Session & Cookies</button>
+  <button class="button" onclick="window.location.href='/'">Go to Home Page</button>
+
+  <div id="success" class="success">
+    ✅ Session cleared successfully! You can now refresh the page or go to the home page.
+  </div>
+
+  <script>
+    function clearSession() {
+      // Clear localStorage
+      localStorage.clear();
+      
+      // Clear sessionStorage
+      sessionStorage.clear();
+      
+      // Clear all cookies
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+      
+      // Show success message
+      document.getElementById('success').style.display = 'block';
+      
+      // Auto-redirect after 2 seconds
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
+
