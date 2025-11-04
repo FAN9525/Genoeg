@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { EditUserDialog } from './EditUserDialog';
 import { adminService, type AdminUserStats } from '@/lib/services/adminService';
 import { formatDate } from '@/lib/utils/dateUtils';
 import { Shield, User as UserIcon, Users, Calendar } from 'lucide-react';
@@ -93,6 +94,7 @@ export function UsersTable({ users, onUpdate }: UsersTableProps) {
             <TableHead>Status</TableHead>
             <TableHead>Start Date</TableHead>
             <TableHead className="text-right">Leave Stats</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -163,6 +165,9 @@ export function UsersTable({ users, onUpdate }: UsersTableProps) {
                     </div>
                   )}
                 </div>
+              </TableCell>
+              <TableCell className="text-right">
+                <EditUserDialog user={user} onUpdate={onUpdate} />
               </TableCell>
             </TableRow>
           ))}
