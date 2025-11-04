@@ -11,6 +11,7 @@ export const authService = {
   async signUp(email: string, password: string, full_name: string, department?: string) {
     const supabase = createClient();
 
+    // Sign up user - profile will be created automatically by database trigger
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -26,21 +27,9 @@ export const authService = {
       throw new Error(authError.message);
     }
 
-    if (authData.user) {
-      // Create profile
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        email,
-        full_name,
-        department: department || null,
-        role: 'employee',
-      } as any);
-
-      if (profileError) {
-        throw new Error(profileError.message);
-      }
-    }
-
+    // Profile is automatically created by the on_auth_user_created trigger
+    // No need to manually insert into profiles table
+    
     return authData;
   },
 
