@@ -4,7 +4,10 @@
 import { createClient } from '@/lib/supabase/client';
 import type { User, CreateUserInput } from '@/lib/types';
 
-export interface CreateUserWithDatesInput extends CreateUserInput {
+export interface CreateUserWithDatesInput {
+  email: string;
+  full_name: string;
+  department?: string;
   start_work_date: string;
   end_work_date?: string;
   role?: 'employee' | 'manager' | 'admin';
@@ -38,7 +41,7 @@ export const adminService = {
       .eq('id', userId)
       .single();
 
-    return data?.role === 'admin';
+    return (data as any)?.role === 'admin';
   },
 
   /**
@@ -119,9 +122,9 @@ export const adminService = {
   async updateUserRole(userId: string, role: 'employee' | 'manager' | 'admin'): Promise<void> {
     const supabase = createClient();
 
-    // @ts-ignore - Supabase generated types may need regeneration
     const { error } = await supabase
       .from('profiles')
+      // @ts-ignore - Supabase generated types may need regeneration
       .update({ role })
       .eq('id', userId);
 
@@ -140,9 +143,9 @@ export const adminService = {
   ): Promise<void> {
     const supabase = createClient();
 
-    // @ts-ignore - Supabase generated types may need regeneration
     const { error } = await supabase
       .from('profiles')
+      // @ts-ignore - Supabase generated types may need regeneration
       .update({
         start_work_date: startDate,
         end_work_date: endDate || null,
@@ -160,9 +163,9 @@ export const adminService = {
   async deactivateUser(userId: string, endDate: string): Promise<void> {
     const supabase = createClient();
 
-    // @ts-ignore - Supabase generated types may need regeneration
     const { error } = await supabase
       .from('profiles')
+      // @ts-ignore - Supabase generated types may need regeneration
       .update({ end_work_date: endDate })
       .eq('id', userId);
 
@@ -181,9 +184,9 @@ export const adminService = {
   ): Promise<void> {
     const supabase = createClient();
 
-    // @ts-ignore - Supabase generated types may need regeneration
     const { error } = await supabase
       .from('leaves')
+      // @ts-ignore - Supabase generated types may need regeneration
       .update({
         status,
         approved_by: approverId,
@@ -216,28 +219,21 @@ export const adminService = {
 
     if (!leave) return;
 
-    const year = new Date(leave.start_date).getFullYear();
+    const leaveData = leave as any;
+    const year = new Date(leaveData.start_date).getFullYear();
 
-    // Update balance
+    // Update balance using the database function
+    // @ts-ignore - Supabase RPC types may need regeneration
     const { error } = await supabase.rpc('update_leave_balance', {
-      p_user_id: leave.user_id,
-      p_leave_type_id: leave.leave_type_id,
+      p_user_id: leaveData.user_id,
+      p_leave_type_id: leaveData.leave_type_id,
       p_year: year,
-      p_days_used: leave.total_days,
+      p_days_used: leaveData.total_days,
     });
 
     if (error) {
-      // If function doesn't exist, do manual update
-      // @ts-ignore
-      await supabase
-        .from('leave_balances')
-        .update({
-          used_days: supabase.rpc('increment_used_days', { amount: leave.total_days }),
-          remaining_days: supabase.rpc('decrement_remaining_days', { amount: leave.total_days }),
-        })
-        .eq('user_id', leave.user_id)
-        .eq('leave_type_id', leave.leave_type_id)
-        .eq('year', year);
+      console.error('Error updating leave balance:', error);
+      throw new Error(error.message);
     }
   },
 
