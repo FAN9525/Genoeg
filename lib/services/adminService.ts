@@ -64,55 +64,27 @@ export const adminService = {
   },
 
   /**
-   * Create a new user (admin only)
+   * Create a new user (admin only) - Uses server-side API
    */
-  async createUser(input: CreateUserWithDatesInput): Promise<{ user: User; tempPassword: string }> {
-    const supabase = createClient();
-
-    // Generate temporary password
-    const tempPassword = `Temp${Math.random().toString(36).slice(-8)}!`;
-
-    // Create auth user
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: input.email,
-      password: tempPassword,
-      email_confirm: true, // Auto-confirm email
-      user_metadata: {
-        full_name: input.full_name,
+  async createUser(input: CreateUserWithDatesInput): Promise<{ user: any; tempPassword: string }> {
+    // Call server-side API route (has service role access)
+    const response = await fetch('/api/admin/create-user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(input),
     });
 
-    if (authError) {
-      throw new Error(authError.message);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create user');
     }
 
-    if (!authData.user) {
-      throw new Error('User creation failed');
-    }
-
-    // Create profile with work dates
-    // @ts-ignore - Supabase generated types may need regeneration
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: authData.user.id,
-        email: input.email,
-        full_name: input.full_name,
-        department: input.department || null,
-        role: input.role || 'employee',
-        start_work_date: input.start_work_date,
-        end_work_date: input.end_work_date || null,
-      } as any)
-      .select()
-      .single();
-
-    if (profileError) {
-      throw new Error(profileError.message);
-    }
-
+    const data = await response.json();
     return {
-      user: profile,
-      tempPassword,
+      user: data.user,
+      tempPassword: data.tempPassword,
     };
   },
 
