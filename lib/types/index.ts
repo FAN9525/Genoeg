@@ -7,6 +7,8 @@ export interface User {
   department: string | null;
   role: 'employee' | 'manager' | 'admin';
   avatar_url: string | null;
+  start_work_date: string | null;
+  end_work_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -85,6 +87,9 @@ export interface CreateUserInput {
   password: string;
   full_name: string;
   department?: string;
+  start_work_date?: string;
+  end_work_date?: string;
+  role?: 'employee' | 'manager' | 'admin';
 }
 
 export interface UpdateUserInput {
