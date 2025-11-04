@@ -76,10 +76,10 @@ export const authService = {
         error: authError,
       } = await supabase.auth.getUser();
 
-      // If there's an auth error (403, 401, etc.), clear the session
+      // If there's an auth error (403, 401, etc.), just return null
+      // Don't try to sign out as that will also fail with 403
       if (authError) {
-        // Silently clear invalid session
-        await supabase.auth.signOut();
+        // Just return null silently - the session is already invalid
         return null;
       }
 
@@ -95,20 +95,13 @@ export const authService = {
 
       // If profile doesn't exist, return null (don't throw error)
       if (profileError) {
-        console.warn('Profile not found for user:', authUser.id);
         return null;
       }
 
       return profile;
     } catch (error) {
       // Handle any unexpected errors gracefully
-      console.error('Error in getCurrentUser:', error);
-      // Clear potentially bad session
-      try {
-        await supabase.auth.signOut();
-      } catch {
-        // Ignore errors during cleanup
-      }
+      // Just return null, don't try to sign out
       return null;
     }
   },
