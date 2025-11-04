@@ -70,21 +70,47 @@ export const authService = {
   async getCurrentUser(): Promise<User | null> {
     const supabase = createClient();
 
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-    if (!authUser) {
+      // If there's an auth error (403, 401, etc.), clear the session
+      if (authError) {
+        // Silently clear invalid session
+        await supabase.auth.signOut();
+        return null;
+      }
+
+      if (!authUser) {
+        return null;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+
+      // If profile doesn't exist, return null (don't throw error)
+      if (profileError) {
+        console.warn('Profile not found for user:', authUser.id);
+        return null;
+      }
+
+      return profile;
+    } catch (error) {
+      // Handle any unexpected errors gracefully
+      console.error('Error in getCurrentUser:', error);
+      // Clear potentially bad session
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // Ignore errors during cleanup
+      }
       return null;
     }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authUser.id)
-      .single();
-
-    return profile;
   },
 
   /**
