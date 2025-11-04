@@ -31,20 +31,6 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ users, onUpdate }: UsersTableProps) {
-  const [updating, setUpdating] = useState<string | null>(null);
-
-  const handleRoleChange = async (userId: string, newRole: 'employee' | 'manager' | 'admin') => {
-    try {
-      setUpdating(userId);
-      await adminService.updateUserRole(userId, newRole);
-      toast.success('User role updated successfully');
-      onUpdate?.();
-    } catch (error) {
-      toast.error('Failed to update user role');
-    } finally {
-      setUpdating(null);
-    }
-  };
 
   const getRoleBadge = (role: string) => {
     const variants: Record<string, string> = {
@@ -103,39 +89,7 @@ export function UsersTable({ users, onUpdate }: UsersTableProps) {
               <TableCell className="font-medium">{user.full_name}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{user.email}</TableCell>
               <TableCell>{user.department || '-'}</TableCell>
-              <TableCell>
-                <Select
-                  value={user.role}
-                  onValueChange={(value) =>
-                    handleRoleChange(user.id, value as 'employee' | 'manager' | 'admin')
-                  }
-                  disabled={updating === user.id}
-                >
-                  <SelectTrigger className="w-32 h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="employee">
-                      <div className="flex items-center">
-                        <UserIcon className="h-3 w-3 mr-2" />
-                        Employee
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="manager">
-                      <div className="flex items-center">
-                        <Users className="h-3 w-3 mr-2" />
-                        Manager
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="admin">
-                      <div className="flex items-center">
-                        <Shield className="h-3 w-3 mr-2" />
-                        Admin
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </TableCell>
+              <TableCell>{getRoleBadge(user.role)}</TableCell>
               <TableCell>{getStatusBadge(user.end_work_date)}</TableCell>
               <TableCell>
                 {user.start_work_date ? (

@@ -4,7 +4,7 @@
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LeaveRequestForm } from '@/components/leaves/LeaveRequestForm';
+import { SALeaveRequestForm } from '@/components/leaves/SALeaveRequestForm';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -40,11 +40,11 @@ export default function RequestLeavePage() {
         <CardHeader>
           <CardTitle>Leave Request Form</CardTitle>
           <CardDescription>
-            Fill in the details below to submit your leave request
+            Fill in the details below. The system automatically calculates working days according to SA labour law (excludes weekends and public holidays).
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LeaveRequestForm userId={user.id} onSuccess={handleSuccess} />
+          <SALeaveRequestForm userId={user.id} onSuccess={handleSuccess} />
         </CardContent>
       </Card>
     </div>
