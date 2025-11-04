@@ -68,7 +68,18 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
       form.reset();
       onSuccess?.();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to create user');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create user';
+      
+      // Handle specific error types
+      if (errorMessage.includes('duplicate') || errorMessage.includes('already exists') || errorMessage.includes('unique')) {
+        toast.error(`Email already exists. Please use a different email address.`);
+        form.setError('email', {
+          type: 'manual',
+          message: 'This email is already registered',
+        });
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

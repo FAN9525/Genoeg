@@ -55,6 +55,17 @@ export async function POST(request: Request) {
 
     if (createError) {
       console.error('Error creating user:', createError);
+      
+      // Handle duplicate email error
+      if (createError.message.includes('duplicate') || 
+          createError.message.includes('unique') ||
+          createError.code === '23505') {
+        return NextResponse.json(
+          { error: 'Email already exists. Please use a different email address.' },
+          { status: 409 }
+        );
+      }
+      
       return NextResponse.json(
         { error: createError.message },
         { status: 500 }
