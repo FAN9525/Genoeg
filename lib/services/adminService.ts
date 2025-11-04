@@ -8,6 +8,7 @@ export interface CreateUserWithDatesInput {
   email: string;
   full_name: string;
   department?: string;
+  password?: string;
   start_work_date: string;
   end_work_date?: string;
   role?: 'employee' | 'manager' | 'admin';

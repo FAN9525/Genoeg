@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     // Get request body
     const body = await request.json();
-    const { email, full_name, department, role, start_work_date, end_work_date } = body;
+    const { email, full_name, department, role, start_work_date, end_work_date, password } = body;
 
     if (!email || !full_name || !start_work_date) {
       return NextResponse.json(
@@ -38,8 +38,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate temporary password
-    const tempPassword = `Temp${Math.random().toString(36).slice(-8)}!`;
+    // Use admin-provided password or generate one
+    const tempPassword = password || `Temp${Math.random().toString(36).slice(-8)}!`;
 
     // Create user directly in auth.users table using database function
     // @ts-ignore - Supabase RPC types may need regeneration

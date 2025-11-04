@@ -32,6 +32,10 @@ const createUserSchema = z.object({
   full_name: z.string().min(2, 'Full name must be at least 2 characters'),
   department: z.string().optional(),
   role: z.enum(['employee', 'manager', 'admin']),
+  temporary_password: z.string().min(8, 'Password must be at least 8 characters').regex(
+    /^(?=.*[A-Za-z])(?=.*\d)/,
+    'Password must contain at least one letter and one number'
+  ),
   start_work_date: z.string().min(1, 'Start work date is required'),
   end_work_date: z.string().optional(),
 });
@@ -44,7 +48,7 @@ interface CreateUserFormProps {
 
 export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
   const [loading, setLoading] = useState(false);
-  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [createdUser, setCreatedUser] = useState<{ email: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
   const form = useForm<CreateUserInput>({
@@ -54,6 +58,7 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
       full_name: '',
       department: '',
       role: 'employee',
+      temporary_password: 'TempPass123!',
       start_work_date: new Date().toISOString().split('T')[0],
       end_work_date: '',
     },
@@ -62,10 +67,27 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
   async function onSubmit(data: CreateUserInput) {
     try {
       setLoading(true);
-      const result = await adminService.createUser(data);
-      setTempPassword(result.tempPassword);
-      toast.success(`User created! Temporary password: ${result.tempPassword}`);
-      form.reset();
+      const result = await adminService.createUser({
+        ...data,
+        password: data.temporary_password,
+      } as any);
+      
+      // Store the created user info
+      setCreatedUser({
+        email: data.email,
+        password: data.temporary_password,
+      });
+      
+      toast.success(`User created successfully!`);
+      form.reset({
+        email: '',
+        full_name: '',
+        department: '',
+        role: 'employee',
+        temporary_password: 'TempPass123!', // Reset to default
+        start_work_date: new Date().toISOString().split('T')[0],
+        end_work_date: '',
+      });
       onSuccess?.();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create user';
@@ -85,33 +107,39 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
     }
   }
 
-  const copyPassword = () => {
-    if (tempPassword) {
-      navigator.clipboard.writeText(tempPassword);
+  const copyCredentials = () => {
+    if (createdUser) {
+      const credentials = `Email: ${createdUser.email}\nPassword: ${createdUser.password}`;
+      navigator.clipboard.writeText(credentials);
       setCopied(true);
-      toast.success('Password copied to clipboard');
+      toast.success('Credentials copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
     <div className="space-y-6">
-      {tempPassword && (
+      {createdUser && (
         <div className="p-4 border rounded-lg bg-green-50 border-green-200">
           <div className="flex items-start justify-between">
-            <div>
-              <p className="font-semibold text-green-900">User Created Successfully!</p>
-              <p className="text-sm text-green-700 mt-1">
-                Temporary Password: <code className="font-mono font-bold">{tempPassword}</code>
-              </p>
+            <div className="flex-1">
+              <p className="font-semibold text-green-900 mb-2">User Created Successfully!</p>
+              <div className="space-y-1 text-sm">
+                <p className="text-green-700">
+                  <span className="font-medium">Email:</span> <code className="font-mono">{createdUser.email}</code>
+                </p>
+                <p className="text-green-700">
+                  <span className="font-medium">Temporary Password:</span> <code className="font-mono font-bold">{createdUser.password}</code>
+                </p>
+              </div>
               <p className="text-xs text-green-600 mt-2">
-                ⚠️ Save this password! It won't be shown again. The user should change it on first login.
+                💡 Share these credentials with the user. They should change the password on first login.
               </p>
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={copyPassword}
+              onClick={copyCredentials}
               className="ml-4"
             >
               {copied ? (
@@ -179,33 +207,55 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Role</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="employee">Employee</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Admin can manage users, Manager can approve leaves, Employee is standard user
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="employee">Employee</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Admin can manage users, Manager can approve leaves, Employee is standard user
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="temporary_password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Temporary Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="TempPass123!"
+                      {...field}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Set a temporary password for the user. User will change this on first login.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="start_work_date"
