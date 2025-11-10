@@ -73,7 +73,7 @@ export default function DashboardPage() {
         <StatsCard
           title="Total Balance"
           value={stats?.total_balance || 0}
-          description="days available this year"
+          description="days available since start date"
           icon={Calendar}
         />
         <StatsCard

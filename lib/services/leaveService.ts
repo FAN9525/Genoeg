@@ -251,14 +251,21 @@ export const leaveService = {
    */
   async getUserLeaveStats(userId: string): Promise<UserLeaveStats> {
     const supabase = createClient();
-    const currentYear = getCurrentYear();
+    const currentDate = new Date().toISOString().split('T')[0];
 
-    // Get leave balances for current year
-    const { data: balances } = await supabase
+    // Get ALL leave balances (cumulative total across all years/cycles)
+    const { data: allBalances } = await supabase
+      .from('leave_balances')
+      .select('*, leave_type:leave_types(*)')
+      .eq('user_id', userId);
+
+    // Get ACTIVE leave balances for display (current year OR active cycles)
+    // This includes sick leave even if cycle started in previous year
+    const { data: activeBalances } = await supabase
       .from('leave_balances')
       .select('*, leave_type:leave_types(*)')
       .eq('user_id', userId)
-      .eq('year', currentYear);
+      .or(`cycle_end_date.gte.${currentDate},cycle_end_date.is.null`);
 
     // Get leave counts
     const { data: leaves } = await supabase
@@ -272,10 +279,10 @@ export const leaveService = {
       approved_leaves: leaves?.filter((l: any) => l.status === 'approved').length || 0,
       rejected_leaves: leaves?.filter((l: any) => l.status === 'rejected').length || 0,
       upcoming_leaves: 0, // Will be calculated from approved future leaves
-      total_balance: balances?.reduce((sum: number, b: any) => sum + b.total_days, 0) || 0,
-      used_days: balances?.reduce((sum: number, b: any) => sum + b.used_days, 0) || 0,
-      remaining_days: balances?.reduce((sum: number, b: any) => sum + b.remaining_days, 0) || 0,
-      balances_by_type: balances || [],
+      total_balance: allBalances?.reduce((sum: number, b: any) => sum + b.total_days, 0) || 0,
+      used_days: allBalances?.reduce((sum: number, b: any) => sum + b.used_days, 0) || 0,
+      remaining_days: allBalances?.reduce((sum: number, b: any) => sum + b.remaining_days, 0) || 0,
+      balances_by_type: activeBalances || [],
     };
 
     // Calculate upcoming leaves

@@ -207,6 +207,61 @@ Managers can:
 3. ✅ **Backfill if needed** - Can update past dates if incorrect
 4. ✅ **Verify balances** - Check calculations are correct
 
+### Shared Parental Leave Management
+
+**IMPORTANT**: Shared Parental Leave is **NOT automatically allocated** to all employees.
+
+**When to Allocate**:
+- ✅ Employee has given birth
+- ✅ Employee is adopting a child
+- ✅ Employee's spouse/partner has given birth or is adopting
+
+**How to Allocate** (via Supabase SQL Editor):
+
+```sql
+-- Allocate 130 days of Shared Parental Leave
+SELECT allocate_shared_parental_leave(
+  'USER_ID_HERE',  -- Replace with actual user UUID
+  130,             -- Number of days (default is 130)
+  2025             -- Year (default is current year)
+);
+```
+
+**Get User ID**:
+```sql
+-- Find user ID by email
+SELECT id, full_name, email 
+FROM profiles 
+WHERE email = 'employee@example.com';
+```
+
+**Example Workflow**:
+```sql
+-- 1. Find the user
+SELECT id, full_name FROM profiles WHERE email = 'jane.doe@company.com';
+
+-- 2. Allocate Shared Parental Leave (use ID from step 1)
+SELECT allocate_shared_parental_leave(
+  '12345678-1234-1234-1234-123456789abc',
+  130,
+  2025
+);
+
+-- 3. Verify allocation
+SELECT lt.name, lb.total_days, lb.remaining_days
+FROM leave_balances lb
+JOIN leave_types lt ON lb.leave_type_id = lt.id
+WHERE lb.user_id = '12345678-1234-1234-1234-123456789abc'
+  AND lt.name = 'Shared Parental Leave';
+```
+
+**Note**: Parents can split the 130 days between them. If both parents work for your company:
+```sql
+-- Allocate 65 days to each parent
+SELECT allocate_shared_parental_leave('parent1_id', 65, 2025);
+SELECT allocate_shared_parental_leave('parent2_id', 65, 2025);
+```
+
 ## Admin Workflows
 
 ### Onboarding New Employee
@@ -335,4 +390,6 @@ For issues with admin features:
 ---
 
 **Remember**: With great power comes great responsibility. Use admin privileges wisely! 🛡️
+
+
 
