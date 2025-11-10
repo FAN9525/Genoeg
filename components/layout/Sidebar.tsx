@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, FileText, CalendarDays, Users, PlusCircle, Shield, Clock } from 'lucide-react';
+import { LayoutDashboard, FileText, CalendarDays, Users, PlusCircle, Shield, Clock, CalendarClock } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 const navItems = [
@@ -23,6 +23,11 @@ const navItems = [
     title: 'My Leaves',
     href: '/my-leaves',
     icon: FileText,
+  },
+  {
+    title: 'My Schedule',
+    href: '/my-schedule',
+    icon: CalendarClock,
   },
   {
     title: 'Team Calendar',
@@ -46,6 +51,11 @@ const adminNavItems = [
     title: 'Approve Leaves',
     href: '/admin/approvals',
     icon: Clock,
+  },
+  {
+    title: 'Work Schedule',
+    href: '/admin/work-schedule',
+    icon: CalendarDays,
   },
 ];
 
