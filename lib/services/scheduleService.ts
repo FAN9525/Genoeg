@@ -40,6 +40,7 @@ export const scheduleService = {
   async getSchedulePatterns(): Promise<WorkSchedulePattern[]> {
     const supabase = createClient();
 
+    // @ts-ignore - Table types not yet generated
     const { data, error } = await supabase
       .from('work_schedule_patterns')
       .select('*')
@@ -134,6 +135,7 @@ export const scheduleService = {
   async getWeekSchedules(weekStartDate: string): Promise<WorkSchedule[]> {
     const supabase = createClient();
 
+    // @ts-ignore - Table types not yet generated
     const { data, error } = await supabase
       .from('work_schedules')
       .select('*, user:profiles(full_name, email, department)')
@@ -177,6 +179,7 @@ export const scheduleService = {
   ): Promise<void> {
     const supabase = createClient();
 
+    // @ts-ignore - Table types not yet generated
     const { error } = await supabase
       .from('work_schedules')
       .update(updates)
