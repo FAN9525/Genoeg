@@ -47,7 +47,7 @@ export const leaveService = {
       throw new Error(error.message);
     }
 
-    return data;
+    return data as any;
   },
 
   /**
@@ -88,7 +88,7 @@ export const leaveService = {
       throw new Error(error.message);
     }
 
-    return data;
+    return data as any;
   },
 
   /**
@@ -140,7 +140,7 @@ export const leaveService = {
       return null;
     }
 
-    return data;
+    return data as any;
   },
 
   /**
@@ -190,7 +190,7 @@ export const leaveService = {
       return [];
     }
 
-    return data;
+    return data as any;
   },
 
   /**
@@ -243,7 +243,7 @@ export const leaveService = {
       return [];
     }
 
-    return data;
+    return data as any;
   },
 
   /**

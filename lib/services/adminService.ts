@@ -233,7 +233,8 @@ export const adminService = {
       return [];
     }
 
-    return data;
+    // Cast to Leave[] since we know status is 'pending' from the filter
+    return data as any;
   },
 
   /**
