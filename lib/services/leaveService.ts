@@ -307,7 +307,7 @@ export const leaveService = {
       used_days: allBalances?.reduce((sum: number, b: any) => sum + b.used_days, 0) || 0,
       remaining_days: allBalances?.reduce((sum: number, b: any) => sum + b.remaining_days, 0) || 0,
       balances_by_type: cumulativeBalancesByType,
-      balances_by_year: allBalances || [],
+      balances_by_year: (allBalances || []) as any,
     };
 
     // Calculate upcoming leaves
