@@ -339,7 +339,7 @@ export const leaveService = {
       return [];
     }
 
-    return data;
+    return data as any;
   },
 
   /**
@@ -360,7 +360,7 @@ export const leaveService = {
       return [];
     }
 
-    return data;
+    return data as any;
   },
 };
 
