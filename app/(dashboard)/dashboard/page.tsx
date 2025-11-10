@@ -96,10 +96,10 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Leave Balance by Type */}
+      {/* Leave Balance by Type - Cumulative */}
       {stats && stats.balances_by_type.length > 0 && (
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Leave Balance by Type</h2>
+          <h2 className="text-2xl font-semibold mb-4">Leave Balance by Type (Cumulative)</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {stats.balances_by_type.map((balance) => (
               <div
@@ -115,20 +115,59 @@ export default function DashboardPage() {
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div>
-                    <p className="text-muted-foreground">Total</p>
-                    <p className="font-bold">{balance.total_days}</p>
+                    <p className="text-muted-foreground">Available</p>
+                    <p className="font-bold text-lg">{balance.total_days}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Used</p>
-                    <p className="font-bold">{balance.used_days}</p>
+                    <p className="text-muted-foreground">Taken</p>
+                    <p className="font-bold text-lg">{balance.used_days}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Left</p>
-                    <p className="font-bold text-primary">{balance.remaining_days}</p>
+                    <p className="text-muted-foreground">Balance</p>
+                    <p className="font-bold text-lg text-primary">{balance.remaining_days}</p>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Yearly Breakdown */}
+      {stats && stats.balances_by_year && stats.balances_by_year.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Yearly Breakdown</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="text-left p-3 font-semibold">Year</th>
+                  <th className="text-left p-3 font-semibold">Leave Type</th>
+                  <th className="text-right p-3 font-semibold">Available</th>
+                  <th className="text-right p-3 font-semibold">Taken</th>
+                  <th className="text-right p-3 font-semibold">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.balances_by_year.map((balance, index) => (
+                  <tr key={`${balance.year}-${balance.leave_type_id}`} className={index % 2 === 0 ? 'bg-muted/20' : ''}>
+                    <td className="p-3">{balance.year}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: balance.leave_type?.color }}
+                        />
+                        {balance.leave_type?.name}
+                      </div>
+                    </td>
+                    <td className="p-3 text-right">{balance.total_days}</td>
+                    <td className="p-3 text-right">{balance.used_days}</td>
+                    <td className="p-3 text-right font-semibold text-primary">{balance.remaining_days}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

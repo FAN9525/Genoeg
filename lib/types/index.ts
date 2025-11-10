@@ -112,6 +112,7 @@ export interface UserLeaveStats extends LeaveStats {
   used_days: number;
   remaining_days: number;
   balances_by_type: LeaveBalance[];
+  balances_by_year?: LeaveBalance[];
 }
 
 // API Response types

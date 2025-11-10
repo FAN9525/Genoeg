@@ -257,15 +257,39 @@ export const leaveService = {
     const { data: allBalances } = await supabase
       .from('leave_balances')
       .select('*, leave_type:leave_types(*)')
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .order('year', { ascending: false });
 
     // Get ACTIVE leave balances for display (current year OR active cycles)
-    // This includes sick leave even if cycle started in previous year
     const { data: activeBalances } = await supabase
       .from('leave_balances')
       .select('*, leave_type:leave_types(*)')
       .eq('user_id', userId)
       .or(`cycle_end_date.gte.${currentDate},cycle_end_date.is.null`);
+
+    // Group all balances by leave type for cumulative view
+    const balancesByTypeMap = new Map();
+    allBalances?.forEach((balance: any) => {
+      const typeId = balance.leave_type_id;
+      const existing = balancesByTypeMap.get(typeId);
+      
+      if (existing) {
+        existing.total_days += balance.total_days;
+        existing.used_days += balance.used_days;
+        existing.remaining_days += balance.remaining_days;
+      } else {
+        balancesByTypeMap.set(typeId, {
+          id: typeId,
+          leave_type_id: typeId,
+          leave_type: balance.leave_type,
+          total_days: balance.total_days,
+          used_days: balance.used_days,
+          remaining_days: balance.remaining_days,
+        });
+      }
+    });
+
+    const cumulativeBalancesByType = Array.from(balancesByTypeMap.values());
 
     // Get leave counts
     const { data: leaves } = await supabase
@@ -278,21 +302,21 @@ export const leaveService = {
       pending_leaves: leaves?.filter((l: any) => l.status === 'pending').length || 0,
       approved_leaves: leaves?.filter((l: any) => l.status === 'approved').length || 0,
       rejected_leaves: leaves?.filter((l: any) => l.status === 'rejected').length || 0,
-      upcoming_leaves: 0, // Will be calculated from approved future leaves
+      upcoming_leaves: 0,
       total_balance: allBalances?.reduce((sum: number, b: any) => sum + b.total_days, 0) || 0,
       used_days: allBalances?.reduce((sum: number, b: any) => sum + b.used_days, 0) || 0,
       remaining_days: allBalances?.reduce((sum: number, b: any) => sum + b.remaining_days, 0) || 0,
-      balances_by_type: activeBalances || [],
+      balances_by_type: cumulativeBalancesByType,
+      balances_by_year: allBalances || [],
     };
 
     // Calculate upcoming leaves
-    const today = new Date().toISOString().split('T')[0];
     const { data: upcomingLeaves } = await supabase
       .from('leaves')
       .select('id')
       .eq('user_id', userId)
       .eq('status', 'approved')
-      .gte('start_date', today);
+      .gte('start_date', currentDate);
 
     stats.upcoming_leaves = upcomingLeaves?.length || 0;
 
