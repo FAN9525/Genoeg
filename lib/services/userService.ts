@@ -22,7 +22,7 @@ export const userService = {
       return null;
     }
 
-    return data;
+    return data as User;
   },
 
   /**
@@ -41,7 +41,7 @@ export const userService = {
       return [];
     }
 
-    return data;
+    return data as User[];
   },
 
   /**
@@ -61,7 +61,7 @@ export const userService = {
       return [];
     }
 
-    return data;
+    return data as User[];
   },
 
   /**
@@ -85,7 +85,7 @@ export const userService = {
       throw new Error(error.message);
     }
 
-    return data;
+    return data as User;
   },
 
   /**
