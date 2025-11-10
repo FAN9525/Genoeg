@@ -7,6 +7,13 @@ import { leaveService } from '@/lib/services/leaveService';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { LeaveCard } from '@/components/leaves/LeaveCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { UserLeaveStats, Leave } from '@/lib/types';
 import { Calendar, Clock, CheckCircle, XCircle, Briefcase } from 'lucide-react';
 
@@ -15,6 +22,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<UserLeaveStats | null>(null);
   const [recentLeaves, setRecentLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -143,43 +151,80 @@ export default function DashboardPage() {
       )}
 
       {/* Yearly Breakdown */}
-      {stats && stats.balances_by_year && stats.balances_by_year.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Yearly Breakdown</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-left p-3 font-semibold">Year</th>
-                  <th className="text-left p-3 font-semibold">Leave Type</th>
-                  <th className="text-right p-3 font-semibold">Available</th>
-                  <th className="text-right p-3 font-semibold">Taken</th>
-                  <th className="text-right p-3 font-semibold">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.balances_by_year.map((balance, index) => (
-                  <tr key={`${balance.year}-${balance.leave_type_id}`} className={index % 2 === 0 ? 'bg-muted/20' : ''}>
-                    <td className="p-3">{balance.year}</td>
-                    <td className="p-3">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: balance.leave_type?.color }}
-                        />
-                        {balance.leave_type?.name}
-                      </div>
-                    </td>
-                    <td className="p-3 text-right">{balance.total_days}</td>
-                    <td className="p-3 text-right">{balance.used_days}</td>
-                    <td className="p-3 text-right font-semibold text-primary">{balance.remaining_days}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {stats && stats.balances_by_year && stats.balances_by_year.length > 0 && (() => {
+        // Get unique years from balances
+        const availableYears = Array.from(
+          new Set(stats.balances_by_year.map(b => b.year))
+        ).sort((a, b) => b - a); // Sort descending (newest first)
+
+        // Filter balances by selected year
+        const filteredBalances = stats.balances_by_year.filter(
+          balance => balance.year === selectedYear
+        );
+
+        return (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-semibold">Yearly Breakdown</h2>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Year:</span>
+                <Select
+                  value={selectedYear.toString()}
+                  onValueChange={(value) => setSelectedYear(parseInt(value))}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableYears.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {filteredBalances.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="text-left p-3 font-semibold">Leave Type</th>
+                      <th className="text-right p-3 font-semibold">Available</th>
+                      <th className="text-right p-3 font-semibold">Taken</th>
+                      <th className="text-right p-3 font-semibold">Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredBalances.map((balance, index) => (
+                      <tr key={`${balance.year}-${balance.leave_type_id}`} className={index % 2 === 0 ? 'bg-muted/20' : ''}>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-2 w-2 rounded-full"
+                              style={{ backgroundColor: balance.leave_type?.color }}
+                            />
+                            {balance.leave_type?.name}
+                          </div>
+                        </td>
+                        <td className="p-3 text-right">{balance.total_days}</td>
+                        <td className="p-3 text-right">{balance.used_days}</td>
+                        <td className="p-3 text-right font-semibold text-primary">{balance.remaining_days}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No leave data for {selectedYear}
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Recent Leaves */}
       {recentLeaves.length > 0 && (
