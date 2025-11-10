@@ -180,7 +180,7 @@ export async function getPublicHolidays(year: number): Promise<Array<{
     return [];
   }
 
-  return data || [];
+  return (data || []) as any;
 }
 
 /**
