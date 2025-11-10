@@ -136,7 +136,7 @@ export async function validateSALeaveRequest(
     p_leave_type_id: leaveTypeId,
     p_start_date: startDate,
     p_end_date: endDate,
-    p_reason: reason || null,
+    p_reason: reason || undefined,
   });
 
   if (error) {
