@@ -98,7 +98,7 @@ export const authService = {
         return null;
       }
 
-      return profile;
+      return profile as User;
     } catch (error) {
       // Handle any unexpected errors gracefully
       // Just return null, don't try to sign out
