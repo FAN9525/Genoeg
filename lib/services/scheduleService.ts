@@ -182,6 +182,7 @@ export const scheduleService = {
     // @ts-ignore - Table types not yet generated
     const { error } = await supabase
       .from('work_schedules')
+      // @ts-ignore
       .update(updates)
       .eq('id', scheduleId);
 
