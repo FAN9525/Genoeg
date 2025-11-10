@@ -1,6 +1,7 @@
 // Navbar component
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -13,10 +14,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { LogOut, User, Settings } from 'lucide-react';
 
 export function Navbar() {
-  const { user, signOut, isAuthenticated } = useAuth();
+  const { user, signOut, isAuthenticated, loading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const getInitials = (name: string) => {
     return name
@@ -27,6 +34,22 @@ export function Navbar() {
       .slice(0, 2);
   };
 
+  // Don't render until mounted (prevents hydration mismatch)
+  if (!mounted) {
+    return (
+      <nav className="border-b bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
+            <Link href="/" className="text-2xl font-bold text-primary">
+              Genoeg Gewerk
+            </Link>
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <nav className="border-b bg-white">
       <div className="container mx-auto px-4">
@@ -36,7 +59,9 @@ export function Navbar() {
           </Link>
 
           <div className="flex items-center gap-4">
-            {isAuthenticated && user ? (
+            {loading ? (
+              <Skeleton className="h-10 w-32" />
+            ) : isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
