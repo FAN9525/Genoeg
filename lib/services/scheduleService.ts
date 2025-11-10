@@ -2,7 +2,7 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
-import type { Database } from '@/lib/database.types';
+import type { Database } from '@/lib/supabase/database.types';
 
 // Type aliases from database
 type WorkSchedulePattern = Database['public']['Tables']['work_schedule_patterns']['Row'];
