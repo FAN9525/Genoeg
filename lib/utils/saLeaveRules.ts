@@ -92,7 +92,7 @@ export async function checkFRLEligibility(
   const { data, error } = await supabase.rpc('check_frl_eligibility', {
     p_user_id: userId,
     p_request_date: requestDate || new Date().toISOString().split('T')[0],
-    p_reason: reason || null,
+    p_reason: reason || undefined,
   });
 
   if (error) {
