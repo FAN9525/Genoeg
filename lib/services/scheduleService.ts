@@ -63,6 +63,7 @@ export const scheduleService = {
   ): Promise<any> {
     const supabase = createClient();
 
+    // @ts-ignore - RPC function types not yet generated
     const { data, error } = await supabase.rpc('generate_rotating_schedule', {
       p_department: department,
       p_start_date: startDate,
@@ -87,6 +88,7 @@ export const scheduleService = {
   ): Promise<number> {
     const supabase = createClient();
 
+    // @ts-ignore - RPC function types not yet generated
     const { data, error } = await supabase.rpc('apply_rotating_schedule', {
       p_department: department,
       p_start_date: startDate,
@@ -111,6 +113,7 @@ export const scheduleService = {
   ): Promise<ScheduleDay[]> {
     const supabase = createClient();
 
+    // @ts-ignore - RPC function types not yet generated
     const { data, error } = await supabase.rpc('get_user_schedule', {
       p_user_id: userId,
       p_start_date: startDate,
@@ -151,6 +154,7 @@ export const scheduleService = {
   async isScheduledWorkDay(userId: string, date: string): Promise<boolean> {
     const supabase = createClient();
 
+    // @ts-ignore - RPC function types not yet generated
     const { data, error } = await supabase.rpc('is_scheduled_work_day', {
       p_user_id: userId,
       p_date: date,
