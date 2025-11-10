@@ -1,7 +1,7 @@
 // Custom hook for authentication
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/lib/services/authService';
 import type { User } from '@/lib/types';
@@ -11,26 +11,36 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
+      return currentUser;
+    } catch (error) {
+      console.error('Error loading user:', error);
+      return null;
+    }
+  }, []);
+
   useEffect(() => {
     async function loadUser() {
       try {
-        const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error loading user:', error);
+        setLoading(true);
+        await refreshUser();
       } finally {
         setLoading(false);
       }
     }
 
     loadUser();
-  }, []);
+  }, [refreshUser]);
 
   const signIn = async (email: string, password: string) => {
     const data = await authService.signIn(email, password);
     const user = await authService.getCurrentUser();
     setUser(user);
     router.push('/dashboard');
+    router.refresh(); // Force refresh Next.js cache
     return data;
   };
 
@@ -57,6 +67,7 @@ export function useAuth() {
     signIn,
     signUp,
     signOut,
+    refreshUser,
     isAuthenticated: !!user,
   };
 }

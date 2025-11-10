@@ -37,6 +37,15 @@ export default function DashboardPage() {
     }
 
     loadDashboardData();
+    
+    // Set up interval to refresh data every 30 seconds when page is visible
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadDashboardData();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [user]);
 
   if (loading) {

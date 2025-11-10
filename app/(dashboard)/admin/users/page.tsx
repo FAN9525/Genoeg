@@ -26,6 +26,7 @@ export default function UserManagementPage() {
     const data = await adminService.getAllUsersWithStats();
     setUsers(data);
     setLoading(false);
+    router.refresh(); // Refresh Next.js cache
   };
 
   useEffect(() => {

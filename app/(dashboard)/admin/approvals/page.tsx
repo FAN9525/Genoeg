@@ -25,6 +25,7 @@ export default function LeaveApprovalsPage() {
     const data = await adminService.getPendingLeaves();
     setLeaves(data);
     setLoading(false);
+    router.refresh(); // Refresh Next.js cache
   };
 
   useEffect(() => {
