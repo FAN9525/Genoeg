@@ -39,8 +39,9 @@ export function useAuth() {
     const data = await authService.signIn(email, password);
     const user = await authService.getCurrentUser();
     setUser(user);
-    router.push('/dashboard');
-    router.refresh(); // Force refresh Next.js cache
+    
+    // Force a full page reload to ensure all components update
+    window.location.href = '/dashboard';
     return data;
   };
 
