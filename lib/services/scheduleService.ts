@@ -2,29 +2,14 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/database.types';
 
-export interface WorkSchedulePattern {
-  id: string;
-  name: string;
-  description: string | null;
-  days_per_week: number;
-  effective_from: string;
-  effective_until: string | null;
-  is_active: boolean;
-}
+// Type aliases from database
+type WorkSchedulePattern = Database['public']['Tables']['work_schedule_patterns']['Row'];
+type WorkSchedule = Database['public']['Tables']['work_schedules']['Row'];
 
-export interface WorkSchedule {
-  id: string;
-  user_id: string;
-  pattern_id: string | null;
-  week_start_date: string;
-  monday_off: boolean;
-  tuesday_off: boolean;
-  wednesday_off: boolean;
-  thursday_off: boolean;
-  friday_off: boolean;
-  notes: string | null;
-}
+// Re-export for external use
+export type { WorkSchedulePattern, WorkSchedule };
 
 export interface ScheduleDay {
   week_start: string;
@@ -40,7 +25,6 @@ export const scheduleService = {
   async getSchedulePatterns(): Promise<WorkSchedulePattern[]> {
     const supabase = createClient();
 
-    // @ts-ignore - Table types not yet generated
     const { data, error } = await supabase
       .from('work_schedule_patterns')
       .select('*')
@@ -64,7 +48,6 @@ export const scheduleService = {
   ): Promise<any> {
     const supabase = createClient();
 
-    // @ts-ignore - RPC function types not yet generated
     const { data, error } = await supabase.rpc('generate_rotating_schedule', {
       p_department: department,
       p_start_date: startDate,
@@ -89,7 +72,6 @@ export const scheduleService = {
   ): Promise<number> {
     const supabase = createClient();
 
-    // @ts-ignore - RPC function types not yet generated
     const { data, error } = await supabase.rpc('apply_rotating_schedule', {
       p_department: department,
       p_start_date: startDate,
@@ -114,7 +96,6 @@ export const scheduleService = {
   ): Promise<ScheduleDay[]> {
     const supabase = createClient();
 
-    // @ts-ignore - RPC function types not yet generated
     const { data, error } = await supabase.rpc('get_user_schedule', {
       p_user_id: userId,
       p_start_date: startDate,
@@ -135,7 +116,6 @@ export const scheduleService = {
   async getWeekSchedules(weekStartDate: string): Promise<WorkSchedule[]> {
     const supabase = createClient();
 
-    // @ts-ignore - Table types not yet generated
     const { data, error } = await supabase
       .from('work_schedules')
       .select('*, user:profiles(full_name, email, department)')
@@ -156,7 +136,6 @@ export const scheduleService = {
   async isScheduledWorkDay(userId: string, date: string): Promise<boolean> {
     const supabase = createClient();
 
-    // @ts-ignore - RPC function types not yet generated
     const { data, error } = await supabase.rpc('is_scheduled_work_day', {
       p_user_id: userId,
       p_date: date,
@@ -179,10 +158,8 @@ export const scheduleService = {
   ): Promise<void> {
     const supabase = createClient();
 
-    // @ts-ignore - Table types not yet generated
     const { error } = await supabase
       .from('work_schedules')
-      // @ts-ignore
       .update(updates)
       .eq('id', scheduleId);
 
