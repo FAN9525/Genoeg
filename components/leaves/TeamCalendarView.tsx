@@ -51,10 +51,13 @@ export function TeamCalendarView({ leaves }: TeamCalendarViewProps) {
       
       // Find leaves that span this date
       const leavesOnThisDay = leaves.filter((leave) => {
-        const leaveStart = new Date(leave.start_date);
-        const leaveEnd = new Date(leave.end_date);
-        const checkDate = new Date(currentDateObj);
-        return checkDate >= leaveStart && checkDate <= leaveEnd;
+        // Use date strings for comparison to avoid timezone issues
+        const leaveStartStr = leave.start_date; // Format: YYYY-MM-DD
+        const leaveEndStr = leave.end_date; // Format: YYYY-MM-DD
+        const checkDateStr = dateStr; // Format: YYYY-MM-DD
+        
+        // String comparison works correctly for YYYY-MM-DD format
+        return checkDateStr >= leaveStartStr && checkDateStr <= leaveEndStr;
       });
 
       days.push({
