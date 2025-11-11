@@ -362,5 +362,86 @@ export const leaveService = {
 
     return data as any;
   },
+
+  /**
+   * Get forfeiture preview for user (18-month rule)
+   * Shows what leave would be forfeited without actually processing
+   */
+  async getForfeiturePreview(userId: string) {
+    const supabase = createClient();
+
+    // @ts-ignore - Supabase RPC types
+    const { data, error } = await supabase.rpc('process_leave_forfeiture', {
+      p_user_id: userId,
+      p_acknowledgment_confirmed: false, // Preview mode
+    });
+
+    if (error) {
+      console.error('Error fetching forfeiture preview:', error);
+      throw new Error(error.message);
+    }
+
+    return data || [];
+  },
+
+  /**
+   * Process leave forfeiture after user acknowledgment
+   * Actually forfeits the leave from their balance
+   */
+  async processForfeiture(userId: string) {
+    const supabase = createClient();
+
+    // @ts-ignore - Supabase RPC types
+    const { data, error } = await supabase.rpc('process_leave_forfeiture', {
+      p_user_id: userId,
+      p_acknowledgment_confirmed: true, // CONFIRMED: Process forfeiture
+    });
+
+    if (error) {
+      console.error('Error processing forfeiture:', error);
+      throw new Error(error.message);
+    }
+
+    return data || [];
+  },
+
+  /**
+   * Check if user has pending forfeiture acknowledgment
+   */
+  async checkPendingForfeiture(userId: string): Promise<boolean> {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('forfeiture_acknowledgment_required')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error checking pending forfeiture:', error);
+      return false;
+    }
+
+    return data?.forfeiture_acknowledgment_required || false;
+  },
+
+  /**
+   * Get all employees with pending forfeiture (admin only)
+   */
+  async getEmployeesWithPendingForfeiture() {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from('employees_with_pending_forfeiture')
+      .select('*')
+      .order('full_name');
+
+    if (error) {
+      console.error('Error fetching employees with pending forfeiture:', error);
+      return [];
+    }
+
+    return data || [];
+  },
 };
 

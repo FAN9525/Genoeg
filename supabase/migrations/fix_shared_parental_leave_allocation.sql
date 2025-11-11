@@ -99,3 +99,4 @@ COMMENT ON FUNCTION allocate_shared_parental_leave IS
    Should only be used when an employee has a qualifying parenting event.
    Usage: SELECT allocate_shared_parental_leave(''user_id_here'', 130, 2025);';
 
+

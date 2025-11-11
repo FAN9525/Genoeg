@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ForfeitureAcknowledgmentCard } from '@/components/leaves/ForfeitureAcknowledgmentCard';
 
 export default function MySchedulePage() {
   const { user } = useAuth();
@@ -194,7 +195,21 @@ export default function MySchedulePage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Leave Forfeiture Section */}
+      {user && (
+        <div id="forfeiture">
+          <ForfeitureAcknowledgmentCard 
+            userId={user.id} 
+            onForfeitureProcessed={() => {
+              // Optionally reload schedule or balances
+              window.location.reload();
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
+
 

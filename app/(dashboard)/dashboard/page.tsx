@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { leaveService } from '@/lib/services/leaveService';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { LeaveCard } from '@/components/leaves/LeaveCard';
+import { ForfeitureWarningBanner } from '@/components/leaves/ForfeitureWarningBanner';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -84,6 +85,9 @@ export default function DashboardPage() {
           Here's an overview of your leave status
         </p>
       </div>
+
+      {/* Forfeiture Warning Banner */}
+      {user && <ForfeitureWarningBanner userId={user.id} />}
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
