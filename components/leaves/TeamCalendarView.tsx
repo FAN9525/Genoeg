@@ -48,10 +48,10 @@ export function TeamCalendarView({ leaves }: TeamCalendarViewProps) {
 
     while (currentDateObj <= endDate) {
       // Format date as YYYY-MM-DD without timezone conversion
-      const year = currentDateObj.getFullYear();
-      const month = String(currentDateObj.getMonth() + 1).padStart(2, '0');
-      const day = String(currentDateObj.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
+      const yearStr = currentDateObj.getFullYear();
+      const monthStr = String(currentDateObj.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(currentDateObj.getDate()).padStart(2, '0');
+      const dateStr = `${yearStr}-${monthStr}-${dayStr}`;
       
       // Find leaves that span this date
       const leavesOnThisDay = leaves.filter((leave) => {
