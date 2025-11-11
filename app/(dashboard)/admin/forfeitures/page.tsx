@@ -257,7 +257,7 @@ export default function AdminForfeituresPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {emp.records.map((record) => (
+                    {emp.records.map((record: EmployeeWithForfeiture) => (
                       <TableRow key={`${emp.userId}-${record.year}`}>
                         <TableCell className="font-medium">{record.year}</TableCell>
                         <TableCell>
