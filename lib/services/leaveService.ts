@@ -92,10 +92,31 @@ export const leaveService = {
   },
 
   /**
-   * Cancel a leave request
+   * Cancel a leave request (simple - no reason)
    */
   async cancelLeave(leaveId: string, userId: string): Promise<Leave> {
     return this.updateLeave(leaveId, userId, { status: 'cancelled' });
+  },
+
+  /**
+   * Cancel a leave request with reason (approved or pending)
+   * Restores leave balance if approved leave is cancelled
+   */
+  async cancelLeaveWithReason(leaveId: string, userId: string, reason: string) {
+    const supabase = createClient();
+
+    // @ts-ignore - RPC function for cancellation with reason
+    const { data, error } = await supabase.rpc('cancel_leave_request', {
+      p_leave_id: leaveId,
+      p_user_id: userId,
+      p_cancellation_reason: reason,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
   },
 
   /**

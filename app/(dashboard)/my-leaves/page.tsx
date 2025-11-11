@@ -25,15 +25,11 @@ export default function MyLeavesPage() {
   const [statusFilter, setStatusFilter] = useState<Leave['status'] | 'all'>('all');
   
   const filters = statusFilter === 'all' ? undefined : { status: statusFilter };
-  const { leaves, loading, cancelLeave } = useLeaves(user?.id || '', filters);
+  const { leaves, loading, refresh } = useLeaves(user?.id || '', filters);
 
-  const handleCancelLeave = async (leaveId: string) => {
-    try {
-      await cancelLeave(leaveId);
-      toast.success('Leave request cancelled');
-    } catch (error) {
-      toast.error('Failed to cancel leave request');
-    }
+  const handleCancelSuccess = () => {
+    // Refresh the leaves list after successful cancellation
+    refresh();
   };
 
   const pendingLeaves = leaves.filter((l) => l.status === 'pending');
@@ -86,6 +82,9 @@ export default function MyLeavesPage() {
           <TabsTrigger value="rejected">
             Rejected ({rejectedLeaves.length})
           </TabsTrigger>
+          <TabsTrigger value="cancelled">
+            Cancelled ({cancelledLeaves.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -106,7 +105,8 @@ export default function MyLeavesPage() {
                 <LeaveCard
                   key={leave.id}
                   leave={leave}
-                  onCancel={handleCancelLeave}
+                  userId={user?.id}
+                  onCancel={handleCancelSuccess}
                 />
               ))}
             </div>
@@ -124,7 +124,8 @@ export default function MyLeavesPage() {
                 <LeaveCard
                   key={leave.id}
                   leave={leave}
-                  onCancel={handleCancelLeave}
+                  userId={user?.id}
+                  onCancel={handleCancelSuccess}
                 />
               ))}
             </div>
@@ -139,7 +140,12 @@ export default function MyLeavesPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {approvedLeaves.map((leave) => (
-                <LeaveCard key={leave.id} leave={leave} />
+                <LeaveCard 
+                  key={leave.id} 
+                  leave={leave}
+                  userId={user?.id}
+                  onCancel={handleCancelSuccess}
+                />
               ))}
             </div>
           )}
@@ -153,6 +159,20 @@ export default function MyLeavesPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {rejectedLeaves.map((leave) => (
+                <LeaveCard key={leave.id} leave={leave} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="cancelled" className="space-y-4">
+          {cancelledLeaves.length === 0 ? (
+            <div className="text-center py-12 border rounded-lg bg-muted/50">
+              <p className="text-muted-foreground">No cancelled requests</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {cancelledLeaves.map((leave) => (
                 <LeaveCard key={leave.id} leave={leave} />
               ))}
             </div>

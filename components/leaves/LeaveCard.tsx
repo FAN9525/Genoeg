@@ -2,20 +2,21 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { CancelLeaveDialog } from './CancelLeaveDialog';
 import { LeaveStatusBadge } from './LeaveStatusBadge';
 import { formatDateRange } from '@/lib/utils/dateUtils';
 import type { Leave } from '@/lib/types';
-import { Calendar, User, FileText, X } from 'lucide-react';
+import { Calendar, User, FileText } from 'lucide-react';
 
 interface LeaveCardProps {
   leave: Leave;
-  onCancel?: (leaveId: string) => void;
+  userId?: string;
+  onCancel?: () => void;
   showUser?: boolean;
 }
 
-export function LeaveCard({ leave, onCancel, showUser = false }: LeaveCardProps) {
-  const canCancel = leave.status === 'pending' && onCancel;
+export function LeaveCard({ leave, userId, onCancel, showUser = false }: LeaveCardProps) {
+  const canCancel = (leave.status === 'pending' || leave.status === 'approved') && userId;
 
   return (
     <Card>
@@ -56,17 +57,21 @@ export function LeaveCard({ leave, onCancel, showUser = false }: LeaveCardProps)
           </div>
         )}
 
+        {/* Show cancellation reason if leave was cancelled */}
+        {leave.status === 'cancelled' && (leave as any).cancellation_reason && (
+          <div className="mt-3 text-sm text-red-700 bg-red-50 p-3 rounded">
+            <p className="font-medium mb-1">Cancellation Reason:</p>
+            <p>{(leave as any).cancellation_reason}</p>
+          </div>
+        )}
+
         {canCancel && (
           <div className="mt-4 pt-4 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onCancel(leave.id)}
-              className="w-full"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Cancel Request
-            </Button>
+            <CancelLeaveDialog 
+              leave={leave} 
+              userId={userId} 
+              onSuccess={onCancel}
+            />
           </div>
         )}
       </CardContent>
