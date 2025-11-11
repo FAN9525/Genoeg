@@ -35,6 +35,8 @@ export interface Leave {
   approved_at: string | null;
   created_at: string;
   updated_at: string;
+  is_half_day?: boolean;
+  half_day_period?: 'morning' | 'afternoon';
   // Joined data
   user?: User;
   leave_type?: LeaveType;
@@ -60,6 +62,8 @@ export interface CreateLeaveInput {
   start_date: string;
   end_date: string;
   reason?: string;
+  is_half_day?: boolean;
+  half_day_period?: 'morning' | 'afternoon';
 }
 
 export interface UpdateLeaveInput {

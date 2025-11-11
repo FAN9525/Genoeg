@@ -47,7 +47,15 @@ export function LeaveCard({ leave, userId, onCancel, showUser = false }: LeaveCa
         
         <div className="flex items-center gap-2 text-sm">
           <FileText className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium">{leave.total_days} days</span>
+          <span className="font-medium">
+            {leave.total_days} {leave.total_days === 1 ? 'day' : 'days'}
+            {leave.is_half_day && (
+              <span className="ml-2 text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                {leave.half_day_period === 'morning' ? '🌅 Morning' : '🌆 Afternoon'}
+                {' '}(08h00-{leave.half_day_period === 'morning' ? '12h00' : '16h30'})
+              </span>
+            )}
+          </span>
         </div>
 
         {leave.reason && (

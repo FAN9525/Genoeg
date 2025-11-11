@@ -165,10 +165,15 @@ export function TeamCalendarView({ leaves }: TeamCalendarViewProps) {
                         backgroundColor: leave.leave_type?.color || '#3B82F6',
                         color: 'white',
                       }}
-                      title={`${leave.user?.full_name} - ${leave.leave_type?.name}\n${formatDate(leave.start_date)} to ${formatDate(leave.end_date)}`}
+                      title={`${leave.user?.full_name} - ${leave.leave_type?.name}\n${formatDate(leave.start_date)} to ${formatDate(leave.end_date)}${leave.is_half_day ? `\nHalf-Day: ${leave.half_day_period}` : ''}`}
                     >
-                      <div className="font-semibold truncate">
+                      <div className="font-semibold truncate flex items-center gap-1">
                         {leave.user?.full_name?.split(' ')[0]}
+                        {leave.is_half_day && (
+                          <span className="text-[10px] opacity-75">
+                            ({leave.half_day_period === 'morning' ? 'AM' : 'PM'})
+                          </span>
+                        )}
                       </div>
                       <div className="truncate opacity-90">
                         {leave.leave_type?.name}

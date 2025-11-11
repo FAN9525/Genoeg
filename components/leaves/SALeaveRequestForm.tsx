@@ -41,6 +41,8 @@ const leaveRequestSchema = z.object({
   end_date: z.string().min(1, 'End date is required'),
   reason: z.string().optional(),
   family_responsibility_reason: z.string().optional(),
+  is_half_day: z.boolean().optional(),
+  half_day_period: z.enum(['morning', 'afternoon']).optional(),
 }).refine((data) => {
   const start = new Date(data.start_date);
   const end = new Date(data.end_date);
@@ -48,6 +50,24 @@ const leaveRequestSchema = z.object({
 }, {
   message: "End date must be after or equal to start date",
   path: ["end_date"],
+}).refine((data) => {
+  // If half-day is selected, start and end date must be the same
+  if (data.is_half_day) {
+    return data.start_date === data.end_date;
+  }
+  return true;
+}, {
+  message: "Half-day leave must be for a single day only",
+  path: ["end_date"],
+}).refine((data) => {
+  // If half-day is selected, period must be specified
+  if (data.is_half_day) {
+    return data.half_day_period === 'morning' || data.half_day_period === 'afternoon';
+  }
+  return true;
+}, {
+  message: "Please select morning or afternoon for half-day leave",
+  path: ["half_day_period"],
 });
 
 type LeaveRequestInput = z.infer<typeof leaveRequestSchema>;
@@ -78,6 +98,8 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
       end_date: '',
       reason: '',
       family_responsibility_reason: '',
+      is_half_day: false,
+      half_day_period: undefined,
     },
   });
 
@@ -85,9 +107,18 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
   const startDate = form.watch('start_date');
   const endDate = form.watch('end_date');
   const frlReason = form.watch('family_responsibility_reason');
+  const isHalfDay = form.watch('is_half_day');
+  const halfDayPeriod = form.watch('half_day_period');
 
   const selectedLeaveType = leaveTypes.find(lt => lt.id === selectedLeaveTypeId);
   const isFRL = selectedLeaveType?.name === 'Family Responsibility Leave';
+
+  // Auto-set end date to start date when half-day is selected
+  useEffect(() => {
+    if (isHalfDay && startDate && startDate !== endDate) {
+      form.setValue('end_date', startDate);
+    }
+  }, [isHalfDay, startDate, endDate, form]);
 
   useEffect(() => {
     async function loadLeaveTypes() {
@@ -189,8 +220,18 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
         start_date: data.start_date,
         end_date: data.end_date,
         reason: data.reason,
+        is_half_day: data.is_half_day || false,
+        half_day_period: data.half_day_period,
       });
-      toast.success('Leave request submitted successfully!');
+      
+      const daysText = data.is_half_day 
+        ? `0.5 days (${data.half_day_period})` 
+        : `${workingDays} days`;
+      
+      toast.success('Leave request submitted successfully!', {
+        description: `${daysText} requested`,
+      });
+      
       form.reset();
       setWorkingDays(null);
       setValidation(null);
@@ -245,6 +286,72 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
           )}
         />
 
+        {/* Half-Day Leave Option */}
+        <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+          <FormField
+            control={form.control}
+            name="is_half_day"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    disabled={loading}
+                    className="mt-1 h-4 w-4"
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Half-Day Leave
+                  </FormLabel>
+                  <FormDescription className="text-xs">
+                    Request leave for only part of the day (0.5 days)
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {isHalfDay && (
+            <FormField
+              control={form.control}
+              name="half_day_period"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Period</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select period" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="morning">
+                        <div className="flex flex-col">
+                          <span className="font-medium">Morning</span>
+                          <span className="text-xs text-muted-foreground">08h00 - 12h00</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="afternoon">
+                        <div className="flex flex-col">
+                          <span className="font-medium">Afternoon</span>
+                          <span className="text-xs text-muted-foreground">12h30 - 16h30</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs">
+                    Work hours: 08h00 - 16h30 (Morning: 08h00-12h00, Afternoon: 12h30-16h30)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+        </div>
+
         {isFRL && (
           <FormField
             control={form.control}
@@ -297,8 +404,17 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
               <FormItem>
                 <FormLabel>End Date</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} disabled={loading} />
+                  <Input 
+                    type="date" 
+                    {...field} 
+                    disabled={loading || isHalfDay} 
+                  />
                 </FormControl>
+                {isHalfDay && (
+                  <FormDescription className="text-xs">
+                    End date is same as start date for half-day leave
+                  </FormDescription>
+                )}
                 <FormMessage />
               </FormItem>
             )}

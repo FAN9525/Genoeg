@@ -20,8 +20,13 @@ export const leaveService = {
   async createLeave(userId: string, input: CreateLeaveInput): Promise<Leave> {
     const supabase = createClient();
 
-    // Calculate total days
-    const total_days = calculateBusinessDays(input.start_date, input.end_date);
+    // Calculate total days (0.5 for half-day, normal calculation for full-day)
+    let total_days: number;
+    if (input.is_half_day) {
+      total_days = 0.5; // Half-day is always 0.5 days
+    } else {
+      total_days = calculateBusinessDays(input.start_date, input.end_date);
+    }
 
     const { data, error } = await supabase
       .from('leaves')
@@ -33,6 +38,8 @@ export const leaveService = {
         total_days,
         reason: input.reason || null,
         status: 'pending',
+        is_half_day: input.is_half_day || false,
+        half_day_period: input.half_day_period || null,
       } as any)
       .select(
         `
