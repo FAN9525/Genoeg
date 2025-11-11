@@ -169,20 +169,30 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
             setDateConflict(null);
           }
           
-          // Calculate SA working days
-          const days = await calculateSAWorkingDays(startDate, endDate);
-          setWorkingDays(days);
+          // For half-day leaves, set working days to 0.5 and skip SA validation
+          if (isHalfDay) {
+            setWorkingDays(0.5);
+            setValidation({
+              is_valid: true,
+              message: `Valid half-day leave request (${halfDayPeriod})`,
+              requires_medical_cert: false,
+            });
+          } else {
+            // Calculate SA working days for full-day leaves
+            const days = await calculateSAWorkingDays(startDate, endDate);
+            setWorkingDays(days);
 
-          // Validate against SA rules
-          const validationResult = await validateSALeaveRequest(
-            userId,
-            selectedLeaveTypeId,
-            startDate,
-            endDate,
-            isFRL ? frlReason : undefined
-          );
+            // Validate against SA rules
+            const validationResult = await validateSALeaveRequest(
+              userId,
+              selectedLeaveTypeId,
+              startDate,
+              endDate,
+              isFRL ? frlReason : undefined
+            );
 
-          setValidation(validationResult);
+            setValidation(validationResult);
+          }
         } catch (error) {
           console.error('Validation error:', error);
         } finally {
@@ -196,7 +206,7 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
     }
 
     validateRequest();
-  }, [startDate, endDate, selectedLeaveTypeId, userId, frlReason, isFRL, approvedLeaves]);
+  }, [startDate, endDate, selectedLeaveTypeId, userId, frlReason, isFRL, approvedLeaves, isHalfDay, halfDayPeriod]);
 
   async function onSubmit(data: LeaveRequestInput) {
     // Check for date conflicts first
