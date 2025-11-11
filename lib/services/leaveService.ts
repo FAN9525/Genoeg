@@ -473,5 +473,70 @@ export const leaveService = {
 
     return data || [];
   },
+
+  /**
+   * Get only cancelled leaves for a user
+   */
+  async getCancelledLeaves(userId: string): Promise<Leave[]> {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from('leaves')
+      .select(
+        `
+        *,
+        user:profiles!leaves_user_id_fkey(*),
+        leave_type:leave_types(*),
+        approver:profiles!leaves_approved_by_fkey(*)
+      `
+      )
+      .eq('user_id', userId)
+      .eq('status', 'cancelled')
+      .order('cancelled_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching cancelled leaves:', error);
+      return [];
+    }
+
+    return data as any;
+  },
+
+  /**
+   * Permanently delete a cancelled leave
+   */
+  async permanentlyDeleteLeave(leaveId: string, userId: string) {
+    const supabase = createClient();
+
+    // @ts-ignore - RPC function for permanent deletion
+    const { data, error } = await supabase.rpc('permanently_delete_cancelled_leave', {
+      p_leave_id: leaveId,
+      p_user_id: userId,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  },
+
+  /**
+   * Cleanup all cancelled leaves for a user
+   */
+  async cleanupAllCancelledLeaves(userId: string) {
+    const supabase = createClient();
+
+    // @ts-ignore - RPC function for bulk cleanup
+    const { data, error } = await supabase.rpc('cleanup_all_cancelled_leaves', {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  },
 };
 

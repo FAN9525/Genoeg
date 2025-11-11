@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useLeaves } from '@/lib/hooks/useLeaves';
 import { LeaveCard } from '@/components/leaves/LeaveCard';
+import { CancelledLeavesSection } from '@/components/leaves/CancelledLeavesSection';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -23,6 +24,7 @@ import { toast } from 'sonner';
 export default function MyLeavesPage() {
   const { user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<Leave['status'] | 'all'>('all');
+  const [showCancelled, setShowCancelled] = useState(false);
   
   const filters = statusFilter === 'all' ? undefined : { status: statusFilter };
   const { leaves, loading, refresh } = useLeaves(user?.id || '', filters);
@@ -32,10 +34,11 @@ export default function MyLeavesPage() {
     refresh();
   };
 
-  const pendingLeaves = leaves.filter((l) => l.status === 'pending');
-  const approvedLeaves = leaves.filter((l) => l.status === 'approved');
-  const rejectedLeaves = leaves.filter((l) => l.status === 'rejected');
-  const cancelledLeaves = leaves.filter((l) => l.status === 'cancelled');
+  // Filter out cancelled leaves from main views
+  const activeLeaves = leaves.filter((l) => l.status !== 'cancelled');
+  const pendingLeaves = activeLeaves.filter((l) => l.status === 'pending');
+  const approvedLeaves = activeLeaves.filter((l) => l.status === 'approved');
+  const rejectedLeaves = activeLeaves.filter((l) => l.status === 'rejected');
 
   if (loading) {
     return (
@@ -71,7 +74,7 @@ export default function MyLeavesPage() {
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
           <TabsTrigger value="all">
-            All ({leaves.length})
+            All Active ({activeLeaves.length})
           </TabsTrigger>
           <TabsTrigger value="pending">
             Pending ({pendingLeaves.length})
@@ -82,13 +85,10 @@ export default function MyLeavesPage() {
           <TabsTrigger value="rejected">
             Rejected ({rejectedLeaves.length})
           </TabsTrigger>
-          <TabsTrigger value="cancelled">
-            Cancelled ({cancelledLeaves.length})
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {leaves.length === 0 ? (
+          {activeLeaves.length === 0 ? (
             <div className="text-center py-12 border rounded-lg bg-muted/50">
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No leave requests</h3>
@@ -101,7 +101,7 @@ export default function MyLeavesPage() {
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              {leaves.map((leave) => (
+              {activeLeaves.map((leave) => (
                 <LeaveCard
                   key={leave.id}
                   leave={leave}
@@ -164,21 +164,23 @@ export default function MyLeavesPage() {
             </div>
           )}
         </TabsContent>
-
-        <TabsContent value="cancelled" className="space-y-4">
-          {cancelledLeaves.length === 0 ? (
-            <div className="text-center py-12 border rounded-lg bg-muted/50">
-              <p className="text-muted-foreground">No cancelled requests</p>
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {cancelledLeaves.map((leave) => (
-                <LeaveCard key={leave.id} leave={leave} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
       </Tabs>
+
+      {/* Cancelled Leaves Section - Separate from Active Tabs */}
+      <div className="mt-8 pt-8 border-t">
+        <Button
+          variant="outline"
+          onClick={() => setShowCancelled(!showCancelled)}
+          className="mb-4"
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          {showCancelled ? 'Hide' : 'View'} Cancelled Leaves History
+        </Button>
+
+        {showCancelled && user && (
+          <CancelledLeavesSection userId={user.id} onUpdate={refresh} />
+        )}
+      </div>
     </div>
   );
 }
