@@ -11,7 +11,8 @@ import type {
   LeaveType,
   UserLeaveStats,
 } from '@/lib/types';
-import { calculateBusinessDays, getCurrentYear } from '@/lib/utils/dateUtils';
+import { getCurrentYear } from '@/lib/utils/dateUtils';
+import { calculateSAWorkingDays } from '@/lib/utils/saLeaveRules';
 
 export const leaveService = {
   /**
@@ -20,12 +21,13 @@ export const leaveService = {
   async createLeave(userId: string, input: CreateLeaveInput): Promise<Leave> {
     const supabase = createClient();
 
-    // Calculate total days (0.5 for half-day, normal calculation for full-day)
+    // Calculate total days (0.5 for half-day, SA working days for full-day)
     let total_days: number;
     if (input.is_half_day) {
       total_days = 0.5; // Half-day is always 0.5 days
     } else {
-      total_days = calculateBusinessDays(input.start_date, input.end_date);
+      // Use SA working days calculation which excludes weekends AND public holidays
+      total_days = await calculateSAWorkingDays(input.start_date, input.end_date);
     }
 
     const { data, error } = await supabase
@@ -67,11 +69,12 @@ export const leaveService = {
   ): Promise<Leave> {
     const supabase = createClient();
 
-    // If dates are updated, recalculate total days
+    // If dates are updated, recalculate total days using SA working days
     let updateData: any = { ...updates };
 
     if (updates.start_date && updates.end_date) {
-      updateData.total_days = calculateBusinessDays(updates.start_date, updates.end_date);
+      // Use SA working days calculation which excludes weekends AND public holidays
+      updateData.total_days = await calculateSAWorkingDays(updates.start_date, updates.end_date);
     }
 
     updateData.updated_at = new Date().toISOString();
