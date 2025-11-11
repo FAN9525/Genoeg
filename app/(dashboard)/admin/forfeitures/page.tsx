@@ -61,7 +61,7 @@ export default function AdminForfeituresPage() {
     try {
       setLoading(true);
       const data = await leaveService.getEmployeesWithPendingForfeiture();
-      setEmployees(data);
+      setEmployees(data as any); // Cast to any - data comes from view with exact fields needed
     } catch (error) {
       console.error('Error loading employees with forfeiture:', error);
     } finally {
