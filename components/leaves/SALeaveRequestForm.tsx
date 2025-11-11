@@ -67,6 +67,8 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
     message: string;
     requires_medical_cert: boolean;
   } | null>(null);
+  const [approvedLeaves, setApprovedLeaves] = useState<any[]>([]);
+  const [dateConflict, setDateConflict] = useState<string | null>(null);
 
   const form = useForm<LeaveRequestInput>({
     resolver: zodResolver(leaveRequestSchema),
@@ -92,8 +94,17 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
       const types = await leaveService.getLeaveTypes();
       setLeaveTypes(types);
     }
+    async function loadApprovedLeaves() {
+      // Get user's approved and pending leaves to check for conflicts
+      const userLeaves = await leaveService.getUserLeaves(userId);
+      const approved = userLeaves.filter(
+        (leave: any) => leave.status === 'approved' || leave.status === 'pending'
+      );
+      setApprovedLeaves(approved);
+    }
     loadLeaveTypes();
-  }, []);
+    loadApprovedLeaves();
+  }, [userId]);
 
   // Calculate working days and validate when dates or type change
   useEffect(() => {
@@ -102,6 +113,31 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
         setValidating(true);
         
         try {
+          // Check for date conflicts with existing approved/pending leaves
+          const requestStart = new Date(startDate);
+          const requestEnd = new Date(endDate);
+          
+          const conflicts = approvedLeaves.filter((leave: any) => {
+            const leaveStart = new Date(leave.start_date);
+            const leaveEnd = new Date(leave.end_date);
+            
+            // Check if dates overlap
+            return (
+              (requestStart >= leaveStart && requestStart <= leaveEnd) ||
+              (requestEnd >= leaveStart && requestEnd <= leaveEnd) ||
+              (requestStart <= leaveStart && requestEnd >= leaveEnd)
+            );
+          });
+
+          if (conflicts.length > 0) {
+            const conflictLeave = conflicts[0];
+            setDateConflict(
+              `These dates overlap with your ${conflictLeave.leave_type?.name || 'existing'} (${conflictLeave.start_date} to ${conflictLeave.end_date}) which is ${conflictLeave.status}. Please choose different dates.`
+            );
+          } else {
+            setDateConflict(null);
+          }
+          
           // Calculate SA working days
           const days = await calculateSAWorkingDays(startDate, endDate);
           setWorkingDays(days);
@@ -124,13 +160,22 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
       } else {
         setWorkingDays(null);
         setValidation(null);
+        setDateConflict(null);
       }
     }
 
     validateRequest();
-  }, [startDate, endDate, selectedLeaveTypeId, userId, frlReason, isFRL]);
+  }, [startDate, endDate, selectedLeaveTypeId, userId, frlReason, isFRL, approvedLeaves]);
 
   async function onSubmit(data: LeaveRequestInput) {
+    // Check for date conflicts first
+    if (dateConflict) {
+      toast.error('Cannot submit: Date conflict detected', {
+        description: dateConflict,
+      });
+      return;
+    }
+
     // Final validation check
     if (!validation?.is_valid) {
       toast.error(validation?.message || 'Invalid leave request');
@@ -149,6 +194,7 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
       form.reset();
       setWorkingDays(null);
       setValidation(null);
+      setDateConflict(null);
       onSuccess?.();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to submit request');
@@ -259,6 +305,23 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
           />
         </div>
 
+        {/* Date Conflict Warning */}
+        {dateConflict && (
+          <div className="rounded-lg border border-red-300 bg-red-50 p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-red-900 mb-1">
+                  ⚠️ Date Conflict Detected
+                </p>
+                <p className="text-sm text-red-800">
+                  {dateConflict}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Working Days Calculation */}
         {validating && (
           <div className="rounded-lg border bg-muted/50 p-4">
@@ -332,7 +395,7 @@ export function SALeaveRequestForm({ userId, onSuccess }: SALeaveRequestFormProp
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={loading || validating || !validation?.is_valid}
+          disabled={loading || validating || !validation?.is_valid || !!dateConflict}
         >
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Submit Leave Request
