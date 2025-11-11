@@ -52,11 +52,11 @@ export function ForfeitureAcknowledgmentCard({
       const data = await leaveService.getForfeiturePreview(userId);
       
       // Filter to only show items that require acknowledgment
-      const itemsToForfeit = data.filter((item: ForfeitureItem) => 
+      const itemsToForfeit = (data as any[]).filter((item: any) => 
         item.requires_acknowledgment && item.days_forfeited > 0
       );
       
-      setForfeiturePreview(itemsToForfeit);
+      setForfeiturePreview(itemsToForfeit as ForfeitureItem[]);
     } catch (error) {
       console.error('Error loading forfeiture preview:', error);
       toast.error('Failed to load forfeiture information');
@@ -76,8 +76,8 @@ export function ForfeitureAcknowledgmentCard({
       
       const result = await leaveService.processForfeiture(userId);
       
-      const totalForfeited = result.reduce(
-        (sum: number, item: ForfeitureItem) => sum + item.days_forfeited,
+      const totalForfeited = (result as any[]).reduce(
+        (sum: number, item: any) => sum + item.days_forfeited,
         0
       );
 
