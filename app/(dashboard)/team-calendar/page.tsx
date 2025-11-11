@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useTeamCalendar } from '@/lib/hooks/useTeamCalendar';
 import { userService } from '@/lib/services/userService';
 import { leaveService } from '@/lib/services/leaveService';
-import { LeaveCard } from '@/components/leaves/LeaveCard';
+import { TeamCalendarView } from '@/components/leaves/TeamCalendarView';
 import {
   Select,
   SelectContent,
@@ -150,29 +150,8 @@ export default function TeamCalendarPage() {
         </CardContent>
       </Card>
 
-      {/* Leave Cards */}
-      {filteredLeaves.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg bg-muted/50">
-          <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No approved leaves found</h3>
-          <p className="text-muted-foreground">
-            Try adjusting your filters or check back later
-          </p>
-        </div>
-      ) : (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-foreground">
-              Showing {filteredLeaves.length} approved {filteredLeaves.length === 1 ? 'leave' : 'leaves'}
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredLeaves.map((leave) => (
-              <LeaveCard key={leave.id} leave={leave} showUser={true} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Calendar View */}
+      <TeamCalendarView leaves={filteredLeaves} />
     </div>
   );
 }
