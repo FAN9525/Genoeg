@@ -411,6 +411,7 @@ export const leaveService = {
   async checkPendingForfeiture(userId: string): Promise<boolean> {
     const supabase = createClient();
 
+    // @ts-ignore - New column not in generated types yet
     const { data, error } = await supabase
       .from('profiles')
       .select('forfeiture_acknowledgment_required')
@@ -422,7 +423,7 @@ export const leaveService = {
       return false;
     }
 
-    return data?.forfeiture_acknowledgment_required || false;
+    return (data as any)?.forfeiture_acknowledgment_required || false;
   },
 
   /**
