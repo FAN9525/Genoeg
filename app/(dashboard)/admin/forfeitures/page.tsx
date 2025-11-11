@@ -78,7 +78,7 @@ export default function AdminForfeituresPage() {
   }, new Map());
 
   const employeesWithTotals = Array.from(employeeGroups.entries()).map(([userId, records]) => {
-    const totalDays = records.reduce((sum: number, r) => sum + r.days_subject_to_forfeiture, 0);
+    const totalDays = records.reduce((sum: number, r: EmployeeWithForfeiture) => sum + r.days_subject_to_forfeiture, 0);
     const yearsAffected = records.length;
     const employee = records[0];
     
