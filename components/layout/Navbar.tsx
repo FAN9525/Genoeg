@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,8 +41,15 @@ export function Navbar() {
       <nav className="border-b bg-white">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary">
-              Genoeg Gewerk
+            <Link href="/" className="flex items-center gap-3">
+              <Image 
+                src="/logo.png" 
+                alt="Genoeg Gewerk Logo" 
+                width={40} 
+                height={40}
+                className="object-contain"
+              />
+              <span className="text-2xl font-bold text-primary">Genoeg Gewerk</span>
             </Link>
             <Skeleton className="h-10 w-32" />
           </div>
@@ -54,8 +62,15 @@ export function Navbar() {
     <nav className="border-b bg-white">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-primary">
-            Genoeg Gewerk
+          <Link href="/" className="flex items-center gap-3">
+            <Image 
+              src="/logo.png" 
+              alt="Genoeg Gewerk Logo" 
+              width={40} 
+              height={40}
+              className="object-contain"
+            />
+            <span className="text-2xl font-bold text-primary">Genoeg Gewerk</span>
           </Link>
 
           <div className="flex items-center gap-4">
