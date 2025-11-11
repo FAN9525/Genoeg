@@ -432,8 +432,8 @@ export const leaveService = {
   async getEmployeesWithPendingForfeiture() {
     const supabase = createClient();
 
-    // @ts-ignore - View not in generated types yet
-    const { data, error } = await supabase
+    // View not in generated types yet - using type assertion
+    const { data, error } = await (supabase as any)
       .from('employees_with_pending_forfeiture')
       .select('*')
       .order('full_name');
