@@ -45,9 +45,9 @@ export function Navbar() {
               <Image 
                 src="/logo.png" 
                 alt="Genoeg Gewerk Logo" 
-                width={40} 
-                height={40}
-                className="object-contain"
+                width={60} 
+                height={60}
+                className="object-contain rounded-xl"
               />
               <span className="text-2xl font-bold text-primary">Genoeg Gewerk</span>
             </Link>
@@ -66,9 +66,9 @@ export function Navbar() {
             <Image 
               src="/logo.png" 
               alt="Genoeg Gewerk Logo" 
-              width={40} 
-              height={40}
-              className="object-contain"
+              width={60} 
+              height={60}
+              className="object-contain rounded-xl"
             />
             <span className="text-2xl font-bold text-primary">Genoeg Gewerk</span>
           </Link>
